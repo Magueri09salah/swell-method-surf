@@ -12,7 +12,7 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("DATABASE_URL ") // Neon pooled (PgBouncer) — runtime
+  url       = env("DATABASE_URL") // Neon pooled (PgBouncer) — runtime
   directUrl = env("DIRECT_URL") // Neon direct — migrations only
 }
 
