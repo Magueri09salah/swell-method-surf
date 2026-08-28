@@ -1,0 +1,81 @@
+{
+  "$description": "Swell Method Surf v2 colour tokens. Mirrors src/app/globals.css. Ratios are measured WCAG 2.1 values.",
+  "primitive": {
+    "yellow": {
+      "value": "#F2E959",
+      "note": "Signature. SURFACE ONLY - 1.23:1 as text on paper."
+    },
+    "yellowDeep": {
+      "value": "#E4D93F",
+      "note": "Hover on yellow surfaces"
+    },
+    "butter": {
+      "value": "#FDF8E0"
+    },
+    "paper": {
+      "value": "#FCFCF7"
+    },
+    "white": {
+      "value": "#FFFFFF"
+    },
+    "ink": {
+      "value": "#141414"
+    },
+    "inkSoft": {
+      "value": "#4A4A45"
+    },
+    "inkMuted": {
+      "value": "#5E5E58"
+    },
+    "terracotta": {
+      "value": "#BF7047",
+      "note": "Heritage. Logo mark only. BANNED on yellow (2.95:1)."
+    }
+  },
+  "semantic": {
+    "surfacePage": "paper",
+    "surfaceRaised": "white",
+    "surfaceSoft": "butter",
+    "surfaceAccent": "yellow",
+    "surfaceInverse": "ink",
+    "textPrimary": "ink",
+    "textSecondary": "inkSoft",
+    "textTertiary": "inkMuted",
+    "textOnAccent": "ink",
+    "textOnInverse": "paper",
+    "textOnInverseDim": "#B8B8B0",
+    "interactive": "ink",
+    "focusRing": "ink"
+  },
+  "state": {
+    "success": "#2F6B3F",
+    "warning": "#8A5A11",
+    "danger": "#B3261E",
+    "info": "#37505F"
+  },
+  "verifiedContrast": {
+    "ink-on-yellow": 14.54,
+    "ink-on-butter": 17.26,
+    "ink-on-paper": 17.9,
+    "ink-on-white": 18.42,
+    "white-on-ink": 18.42,
+    "inkSoft-on-paper": 8.66,
+    "inkSoft-on-yellow": 7.03,
+    "inkMuted-on-paper": 6.34,
+    "terracotta-on-paper": 3.63,
+    "terracotta-on-yellow": 2.95,
+    "yellow-on-paper": 1.23
+  },
+  "banned": [
+    {
+      "pair": "yellow on paper/white",
+      "ratio": 1.23,
+      "reason": "Unreadable. Yellow is a surface."
+    },
+    {
+      "pair": "terracotta on yellow",
+      "ratio": 2.95,
+      "reason": "Below the 3:1 graphics floor."
+    }
+  ]
+}

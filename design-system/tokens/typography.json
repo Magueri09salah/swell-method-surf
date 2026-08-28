@@ -1,0 +1,99 @@
+{
+  "$description": "Swell Method Surf v2 typography. Inferred from the supplied design screenshot.",
+  "families": {
+    "display": {
+      "family": "Poppins",
+      "weights": [
+        600,
+        700,
+        800
+      ],
+      "source": "next/font/google, self-hosted"
+    },
+    "body": {
+      "family": "IBM Plex Mono",
+      "weights": [
+        400,
+        500,
+        600
+      ],
+      "source": "next/font/google, self-hosted"
+    }
+  },
+  "scale": {
+    "display-xl": {
+      "size": "clamp(3rem, 1rem + 8.4vw, 8rem)",
+      "family": "display",
+      "weight": 800,
+      "lineHeight": 0.92,
+      "tracking": "-0.03em",
+      "transform": "uppercase"
+    },
+    "display-l": {
+      "size": "clamp(2.125rem, 1.2rem + 3.9vw, 3.75rem)",
+      "family": "display",
+      "weight": 700,
+      "lineHeight": 1.06,
+      "tracking": "-0.02em"
+    },
+    "h1": {
+      "size": "clamp(1.875rem, 1.2rem + 2.6vw, 3rem)",
+      "family": "display",
+      "weight": 700,
+      "lineHeight": 1.1,
+      "tracking": "-0.02em"
+    },
+    "h2": {
+      "size": "clamp(1.5rem, 1.15rem + 1.6vw, 2.25rem)",
+      "family": "display",
+      "weight": 700,
+      "lineHeight": 1.18,
+      "tracking": "-0.015em"
+    },
+    "h3": {
+      "size": "clamp(1.125rem, 1.05rem + 0.4vw, 1.375rem)",
+      "family": "display",
+      "weight": 600,
+      "lineHeight": 1.3,
+      "tracking": "-0.01em"
+    },
+    "body-lg": {
+      "size": "clamp(1rem, 0.95rem + 0.25vw, 1.0625rem)",
+      "family": "body",
+      "weight": 400,
+      "lineHeight": 1.8
+    },
+    "body": {
+      "size": "0.9375rem",
+      "family": "body",
+      "weight": 400,
+      "lineHeight": 1.8
+    },
+    "body-sm": {
+      "size": "0.875rem",
+      "family": "body",
+      "weight": 400,
+      "lineHeight": 1.7
+    },
+    "caption": {
+      "size": "0.75rem",
+      "family": "body",
+      "weight": 400,
+      "lineHeight": 1.55,
+      "tracking": "0.01em"
+    },
+    "label": {
+      "size": "0.6875rem",
+      "family": "body",
+      "weight": 500,
+      "lineHeight": 1.4,
+      "tracking": "0.16em",
+      "transform": "uppercase"
+    }
+  },
+  "measure": {
+    "default": "58ch",
+    "tight": "46ch",
+    "note": "Narrower than the usual 65-75ch because monospace sets wider per character."
+  }
+}

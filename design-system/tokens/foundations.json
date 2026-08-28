@@ -1,0 +1,87 @@
+{
+  "spacing": {
+    "base": 8,
+    "scale": [
+      4,
+      8,
+      12,
+      16,
+      20,
+      24,
+      32,
+      40,
+      48,
+      64,
+      80,
+      96,
+      128,
+      160
+    ],
+    "section": {
+      "tight": {
+        "mobile": 48,
+        "desktop": 64
+      },
+      "section": {
+        "mobile": 80,
+        "desktop": 120
+      },
+      "major": {
+        "mobile": 96,
+        "desktop": 160
+      }
+    }
+  },
+  "radius": {
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 20,
+    "pill": 9999,
+    "note": "Pills are the signature interactive shape."
+  },
+  "shadows": {
+    "xs": "0 1px 2px rgb(20 20 20 / 0.04)",
+    "sm": "0 2px 10px rgb(20 20 20 / 0.05)",
+    "md": "0 10px 28px rgb(20 20 20 / 0.08)",
+    "lg": "0 24px 60px rgb(20 20 20 / 0.12)",
+    "note": "Near-absent by design. Structure comes from borders and colour blocks."
+  },
+  "motion": {
+    "duration": {
+      "instant": 120,
+      "fast": 200,
+      "base": 320,
+      "slow": 560,
+      "swell": 900
+    },
+    "easing": {
+      "out": "cubic-bezier(0.22,1,0.36,1)",
+      "in": "cubic-bezier(0.55,0,1,0.45)",
+      "swell": "cubic-bezier(0.16,0.84,0.24,1)"
+    },
+    "rules": [
+      "transform and opacity only",
+      "no spring or bounce",
+      "exit ~65% of enter",
+      "prefers-reduced-motion collapses all to 0.01ms",
+      "content is visible by default; reveal is additive"
+    ]
+  },
+  "breakpoints": {
+    "sm": 640,
+    "md": 768,
+    "lg": 1024,
+    "xl": 1280,
+    "2xl": 1536,
+    "verifiedAt": [
+      375,
+      390,
+      768,
+      1024,
+      1280,
+      1440,
+      1920
+    ]
+  }
+}

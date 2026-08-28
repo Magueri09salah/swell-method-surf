@@ -1,0 +1,420 @@
+// Swell Method Surf — data model
+// Conventions are documented in docs/DATABASE.md.
+//   * cuid() primary keys (short, sortable-ish, non-enumerable — unlike autoincrement)
+//   * every table carries createdAt / updatedAt
+//   * money is Decimal(10,2), never Float
+//   * enums for anything with a closed set of values
+//   * indexes on every column used for filtering, sorting or joining
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL") // Neon pooled (PgBouncer) — runtime
+  directUrl = env("DIRECT_URL") // Neon direct — migrations only
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum Role {
+  ADMIN
+  EDITOR
+}
+
+/// What the visitor is asking for. Stored explicitly rather than inferred from
+/// which foreign key is set, so the intent survives the offer or package later
+/// being deleted (both relations are SetNull).
+enum BookingKind {
+  SESSION
+  PACKAGE
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  REJECTED
+}
+
+enum ExperienceLevel {
+  FIRST_TIME
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+/// The format a visitor asks for on the public form. NOT_SURE is deliberate:
+/// forcing a choice loses bookings from people who do not yet know the difference.
+enum CoachingFormat {
+  PRIVATE
+  SEMI_PRIVATE
+  GROUP
+  NOT_SURE
+}
+
+/// The level an offer is aimed at. ALL_LEVELS is distinct from a null level.
+enum CoachingLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  ALL_LEVELS
+}
+
+enum GalleryCategory {
+  SURF
+  COACHING
+  IMSOUANE
+  OCEAN
+  LIFESTYLE
+}
+
+enum MessageStatus {
+  UNREAD
+  READ
+  ARCHIVED
+}
+
+enum DayStatus {
+  AVAILABLE
+  LIMITED
+  UNAVAILABLE
+}
+
+// ---------------------------------------------------------------------------
+// Auth
+// ---------------------------------------------------------------------------
+
+/// Admin users only. There is no public sign-up — accounts are provisioned by seed.
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  /// bcrypt hash, cost 12. Never selected into any DTO.
+  passwordHash String
+  name         String
+  role         Role      @default(ADMIN)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  bookingNotes BookingNote[]
+
+  @@map("users")
+}
+
+// ---------------------------------------------------------------------------
+// Clients and bookings
+// ---------------------------------------------------------------------------
+
+/// A person who has enquired at least once. Created automatically on first
+/// booking request and reused on subsequent ones, keyed on lowercased email.
+model Client {
+  id              String           @id @default(cuid())
+  email           String           @unique
+  name            String
+  phone           String?
+  whatsapp        String?
+  /// ISO 3166-1 alpha-2 where known, otherwise free text as typed.
+  country         String?
+  experienceLevel ExperienceLevel?
+  /// Private coach notes. Never rendered on the public site.
+  notes           String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  bookings Booking[]
+
+  @@index([createdAt])
+  @@index([name])
+  @@map("clients")
+}
+
+model CoachingOffer {
+  id               String         @id @default(cuid())
+  title            String
+  slug             String         @unique
+  shortDescription String
+  description      String
+  level            CoachingLevel  @default(ALL_LEVELS)
+  format           CoachingFormat @default(PRIVATE)
+  /// Session length in minutes. Integer so it can be formatted per locale.
+  durationMinutes  Int
+  price            Decimal        @db.Decimal(10, 2)
+  currency         String         @default("MAD")
+  maxParticipants  Int            @default(1)
+  /// Bullet list of what the session includes.
+  includes         String[]
+  imageUrl         String?
+  imageAlt         String?
+  featured         Boolean        @default(false)
+  active           Boolean        @default(true)
+  sortOrder        Int            @default(0)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  bookings Booking[]
+
+  @@index([active, sortOrder])
+  @@index([featured])
+  @@map("coaching_offers")
+}
+
+/// A booking request. Never hard-deleted — cancellation is a status, so the
+/// coach keeps an accurate history of who asked for what and when.
+model Booking {
+  id        String        @id @default(cuid())
+  /// Short human-quotable reference, e.g. "SMS-4K7QP2". Unique.
+  reference String        @unique
+  status    BookingStatus @default(PENDING)
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  /// Single session or multi-day package. Drives which of the two references
+  /// below is meaningful, and which fields the booking form collected.
+  bookingType BookingKind @default(SESSION)
+
+  /// Nullable: a visitor may pick "Not sure" and the coach assigns the offer later.
+  coachingOfferId String?
+  coachingOffer   CoachingOffer? @relation(fields: [coachingOfferId], references: [id], onDelete: SetNull)
+
+  /// Set only when bookingType is PACKAGE.
+  packageId String?
+  package   Package? @relation(fields: [packageId], references: [id], onDelete: SetNull)
+
+  /// What the visitor asked for, preserved even after the coach assigns an offer.
+  requestedFormat CoachingFormat  @default(NOT_SURE)
+  experienceLevel ExperienceLevel
+
+  /// Date only (time component is normalised to 00:00 UTC).
+  preferredDate DateTime @db.Date
+  /// Free-form preferred time, e.g. "Morning" / "07:30". Surf timing follows tide,
+  /// so a rigid time slot would be misleading at this stage.
+  preferredTime String?
+  participants  Int      @default(1)
+
+  message     String?
+  /// Price quoted at confirmation. Snapshotted so later price changes to the
+  /// offer never rewrite historical bookings.
+  priceQuoted Decimal? @db.Decimal(10, 2)
+  currency    String   @default("MAD")
+
+  /// Scheduled slot once confirmed by the coach.
+  scheduledAt DateTime?
+
+  /// Provenance, kept for abuse triage. Not shown in the UI.
+  sourceIp String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  notes BookingNote[]
+
+  @@index([status, createdAt])
+  @@index([preferredDate])
+  @@index([scheduledAt])
+  @@index([clientId])
+  @@index([packageId])
+  @@map("bookings")
+}
+
+/// Append-only internal notes on a booking. Separate table rather than a text
+/// column so each note keeps its author and timestamp.
+model BookingNote {
+  id        String   @id @default(cuid())
+  bookingId String
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  authorId  String?
+  author    User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  body      String
+  createdAt DateTime @default(now())
+
+  @@index([bookingId, createdAt])
+  @@map("booking_notes")
+}
+
+// ---------------------------------------------------------------------------
+// Availability
+// ---------------------------------------------------------------------------
+
+/// One row per calendar day the coach has expressed an intent about.
+/// Absence of a row means "not yet decided", which is different from UNAVAILABLE.
+model AvailabilityDay {
+  id        String    @id @default(cuid())
+  date      DateTime  @unique @db.Date
+  status    DayStatus @default(AVAILABLE)
+  /// Private — never rendered publicly.
+  note      String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  slots AvailabilitySlot[]
+
+  @@index([date, status])
+  @@map("availability_days")
+}
+
+model AvailabilitySlot {
+  id        String          @id @default(cuid())
+  dayId     String
+  day       AvailabilityDay @relation(fields: [dayId], references: [id], onDelete: Cascade)
+  /// "HH:mm" 24h, interpreted in Africa/Casablanca.
+  startTime String
+  endTime   String
+  capacity  Int             @default(1)
+  label     String?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@unique([dayId, startTime])
+  @@index([dayId])
+  @@map("availability_slots")
+}
+
+// ---------------------------------------------------------------------------
+// Content
+// ---------------------------------------------------------------------------
+
+model Testimonial {
+  id          String    @id @default(cuid())
+  clientName  String
+  /// Optional context line, e.g. "France · Intermediate".
+  origin      String?
+  quote       String
+  /// 1–5. Enforced in the Zod layer as well as here by convention.
+  rating      Int       @default(5)
+  avatarUrl   String?
+  sessionDate DateTime? @db.Date
+  featured    Boolean   @default(false)
+  published   Boolean   @default(false)
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([published, sortOrder])
+  @@index([featured, published])
+  @@map("testimonials")
+}
+
+model GalleryImage {
+  id        String          @id @default(cuid())
+  title     String
+  imageUrl  String
+  /// Required at the application layer — every meaningful image needs alt text.
+  altText   String
+  caption   String?
+  category  GalleryCategory @default(SURF)
+  /// Intrinsic dimensions, stored so next/image can reserve space and avoid CLS.
+  width     Int?
+  height    Int?
+  featured  Boolean         @default(false)
+  published Boolean         @default(true)
+  sortOrder Int             @default(0)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@index([published, sortOrder])
+  @@index([category, published])
+  @@map("gallery_images")
+}
+
+/// Typed key/value CMS. `key` is a stable dotted path such as "home.hero".
+/// `data` holds a per-key JSON payload validated by a Zod schema in
+/// src/lib/validation/content.ts — see docs/DECISIONS.md D-011.
+model ContentSection {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  /// Human label shown in the admin.
+  label     String
+  data      Json
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  @@map("content_sections")
+}
+
+/// Flat singleton-style settings. One row per key so a new setting never needs
+/// a migration.
+model SiteSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("site_settings")
+}
+
+/// General enquiries that are not booking requests.
+model ContactMessage {
+  id        String        @id @default(cuid())
+  name      String
+  email     String
+  subject   String?
+  body      String
+  status    MessageStatus @default(UNREAD)
+  sourceIp  String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([status, createdAt])
+  @@map("contact_messages")
+}
+
+/// An image uploaded through the admin.
+///
+/// Bytes live in Postgres rather than on disk or in an object store — see
+/// docs/DECISIONS.md D-014. Short version: Vercel's filesystem is ephemeral, so
+/// writing to public/ works in development and silently loses files in
+/// production; object storage needs credentials this deployment does not have.
+/// At one coach's scale (tens of photographs, downscaled on upload) this is a
+/// few megabytes and serves fine behind cache headers.
+model MediaAsset {
+  id        String   @id @default(cuid())
+  /// Original filename, kept for recognisability in the picker.
+  filename  String
+  mimeType  String
+  /// Bytes actually stored, after client-side downscaling.
+  sizeBytes Int
+  width     Int
+  height    Int
+  /// Alt text captured at upload time so an image can never enter the library
+  /// without it.
+  altText   String
+  data      Bytes
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@map("media_assets")
+}
+
+/// A multi-day package: several sessions sold together at a per-person price.
+///
+/// Deliberately a separate model from CoachingOffer rather than a flag on it.
+/// A package is sold by DAYS and lists what is bundled; an offer is sold by
+/// SESSION LENGTH and has a participant cap. Forcing both through one table
+/// would mean half the columns are null for either kind.
+model Package {
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  /// Bullet list shown on the card, in order.
+  features  String[]
+  price     Decimal  @db.Decimal(10, 2)
+  currency  String   @default("EUR")
+  /// Length of the package in days, used for ordering and copy.
+  days      Int
+  imageUrl  String?
+  featured  Boolean  @default(false)
+  active    Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bookings Booking[]
+
+  @@index([active, sortOrder])
+  @@map("packages")
+}

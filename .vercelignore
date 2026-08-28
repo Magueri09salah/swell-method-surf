@@ -1,0 +1,9 @@
+# Source drop of the coach's photographs. The served copies live in
+# public/photography/ — this folder is the originals and is not needed in the
+# deployment bundle.
+images/
+
+# Never needed on the build machine.
+docs/
+design-system/
+tests/
