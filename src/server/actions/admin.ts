@@ -418,7 +418,11 @@ export async function saveContentAction(
   }
 
   updateTag(CACHE_TAGS.content);
-  revalidatePath("/");
+  // Content sections are rendered on several pages — the hero and intro on "/",
+  // the pillars on "/" and "/method", the Imsouane guide on "/" and "/imsouane".
+  // Revalidating the root LAYOUT refreshes every route beneath it, so an edit
+  // is never left visible on one page and stale on another.
+  revalidatePath("/", "layout");
   return ok();
 }
 

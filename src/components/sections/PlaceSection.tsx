@@ -21,7 +21,11 @@ export function PlaceSection({
   limit?: number;
 }) {
   const Heading = headingLevel;
-  const image = media("imsouaneBoats");
+  // The coach can set this in Admin -> Content -> Imsouane. Falling back to the
+  // shipped photograph means an empty field never leaves a hole in the page.
+  const fallback = media("imsouaneBoats");
+  const imageSrc = content.imageUrl || fallback.src;
+  const imageAlt = content.imageUrl ? content.imageAlt : fallback.alt;
   const blocks = limit ? content.blocks.slice(0, limit) : content.blocks;
 
   return (
@@ -37,8 +41,8 @@ export function PlaceSection({
       <Reveal delay={80} className="mt-12 md:mt-16">
         <div className="relative aspect-[16/10] w-full overflow-hidden rounded-[12px] border border-[var(--color-line)] md:aspect-[21/9]">
           <Image
-            src={image.src}
-            alt={image.alt}
+            src={imageSrc}
+            alt={imageAlt}
             fill
             loading="lazy"
             sizes="100vw"

@@ -25,7 +25,7 @@ const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
  * A leading `//` is rejected because it is protocol-relative: it looks like a
  * local path but resolves to a third-party host.
  */
-const imageRef = z
+export const imageRef = z
   .string()
   .trim()
   .max(500, "That address is too long.")

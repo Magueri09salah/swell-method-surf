@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { imageRef } from "./admin";
 
 /**
  * Typed CMS payloads (docs/DECISIONS.md D-011).
@@ -55,6 +56,15 @@ export const placeSchema = z.object({
   eyebrow: z.string().trim().max(60),
   title: z.string().trim().max(160),
   intro: z.string().trim().max(1200),
+  /**
+   * The wide band photograph under the intro.
+   *
+   * `.default("")` rather than required, so rows saved before this field
+   * existed still validate. If they did not, getContent would fail validation
+   * and silently serve the shipped default — discarding the coach's own copy.
+   */
+  imageUrl: imageRef.default(""),
+  imageAlt: z.string().trim().max(300).default(""),
   blocks: z
     .array(
       z.object({
@@ -181,6 +191,8 @@ export const CONTENT_DEFAULTS: { [K in ContentKey]: ContentData<K> } = {
     title: "Imsouane, and why the coaching is here.",
     intro:
       "A fishing village on Morocco's Atlantic coast, roughly between Agadir and Essaouira. Two bays, a working harbour, and a right-hander that peels far enough to change how you think about a single wave.",
+    imageUrl: "",
+    imageAlt: "",
     blocks: [
       {
         title: "The Bay",

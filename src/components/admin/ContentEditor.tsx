@@ -5,6 +5,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { TextAreaField, TextField } from "@/components/ui/Field";
 import { ErrorBanner, SuccessBanner } from "@/components/ui/primitives";
+import { ImagePicker } from "./ImagePicker";
 import { saveContentAction } from "@/server/actions/admin";
 import type { ActionResult } from "@/server/services/types";
 import type { ContentKey } from "@/lib/validation/content";
@@ -42,7 +43,19 @@ const FIELD_LABELS: Record<string, string> = {
   primaryCtaHref: "Primary button link",
   secondaryCtaLabel: "Secondary button label",
   secondaryCtaHref: "Secondary button link",
+  imageUrl: "Section photograph",
+  imageAlt: "Image alt text",
 };
+
+/**
+ * Fields rendered with the image picker rather than a text box.
+ *
+ * Keyed by name so any section that later gains an `imageUrl` gets the picker
+ * for free — no change needed here.
+ */
+const IMAGE_FIELDS = new Set(["imageUrl"]);
+/** Rendered alongside its image, not as a separate input. */
+const IMAGE_ALT_FIELDS = new Set(["imageAlt"]);
 
 const LONG_FIELDS = new Set(["body", "intro", "subtitle", "quote"]);
 
@@ -106,6 +119,25 @@ export function ContentEditor({
       <div className="flex flex-col gap-5">
         {scalarKeys.map((key) => {
           const current = value[key] as string;
+
+          // The alt text is captured by the picker itself.
+          if (IMAGE_ALT_FIELDS.has(key)) return null;
+
+          if (IMAGE_FIELDS.has(key)) {
+            return (
+              <ImagePicker
+                key={key}
+                label={label(key)}
+                value={current}
+                onChange={(url) => setField(key, url)}
+                altText={(value.imageAlt as string) ?? ""}
+                onAltTextChange={(alt) => setField("imageAlt", alt)}
+                showUrlInput={false}
+                hint="Upload from this device, or reuse one you have already uploaded. Leave empty to keep the photograph the site ships with."
+              />
+            );
+          }
+
           return LONG_FIELDS.has(key) ? (
             <TextAreaField
               key={key}
