@@ -20,7 +20,6 @@ import { getContent } from "@/server/services/content";
 import { getFeaturedOffers } from "@/server/services/coaching";
 import { getActivePackages } from "@/server/services/package";
 import { getFeaturedTestimonials } from "@/server/services/testimonial";
-import { getGoogleReviews } from "@/server/services/google-reviews";
 import { getGalleryPreview } from "@/server/services/gallery";
 
 export const metadata: Metadata = pageMetadata({
@@ -33,7 +32,7 @@ export const metadata: Metadata = pageMetadata({
 export default async function HomePage() {
   // Parallel: these reads are independent, so waterfalling them would add
   // latency for nothing.
-  const [hero, intro, cta, pillars, bio, place, offers, packages, testimonials, googleReviews, gallery] =
+  const [hero, intro, cta, pillars, bio, place, offers, packages, testimonials, gallery] =
     await Promise.all([
       getContent("home.hero"),
       getContent("home.intro"),
@@ -44,7 +43,6 @@ export default async function HomePage() {
       getFeaturedOffers(),
       getActivePackages(),
       getFeaturedTestimonials(),
-    getGoogleReviews(),
       getGalleryPreview(6),
     ]);
 
@@ -58,7 +56,7 @@ export default async function HomePage() {
       <PackagesSection packages={packages} />
       <PlaceSection content={place} limit={4} />
       <CoachIntro content={bio} truncate />
-      <TestimonialsSection testimonials={testimonials} google={googleReviews} />
+      <TestimonialsSection testimonials={testimonials} />
 
       {gallery.length > 0 && (
         <section className="section-y">
