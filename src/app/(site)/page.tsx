@@ -33,24 +33,24 @@ export const metadata: Metadata = pageMetadata({
 export default async function HomePage() {
   // Parallel: these reads are independent, so waterfalling them would add
   // latency for nothing.
-  // const [hero, intro, cta, pillars, bio, place, offers, packages, testimonials, googleReviews, gallery] =
-  //   await Promise.all([
-  //     getContent("home.hero"),
-  //     getContent("home.intro"),
-  //     getContent("home.cta"),
-  //     getContent("method.pillars"),
-  //     getContent("about.bio"),
-  //     getContent("imsouane.guide"),
-  //     getFeaturedOffers(),
-  //     getActivePackages(),
-  //     getFeaturedTestimonials(),
-  //   getGoogleReviews(),
-  //     getGalleryPreview(6),
-  //   ]);
+  const [hero, intro, cta, pillars, bio, place, offers, packages, testimonials, googleReviews, gallery] =
+    await Promise.all([
+      getContent("home.hero"),
+      getContent("home.intro"),
+      getContent("home.cta"),
+      getContent("method.pillars"),
+      getContent("about.bio"),
+      getContent("imsouane.guide"),
+      getFeaturedOffers(),
+      getActivePackages(),
+      getFeaturedTestimonials(),
+    getGoogleReviews(),
+      getGalleryPreview(6),
+    ]);
 
   return (
     <>
-      {/* <Hero content={hero} />
+      <Hero content={hero} />
       <Intro content={intro} />
       <LevelsBand />
       <MethodPillars content={pillars} limit={6} />
@@ -110,7 +110,7 @@ export default async function HomePage() {
             slug: offer.slug,
           })),
         )}
-      /> */}
+      />
     </>
   );
 }

@@ -29,13 +29,13 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         Skip to content
       </a>
 
-      {/* <Header /> */}
+      <Header />
 
       <main id="main" className="flex-1">
         {children}
       </main>
 
-      {/* <Footer /> */}
+      <Footer />
 
       <JsonLd data={jsonLd} />
     </div>
