@@ -20,6 +20,7 @@ import { getContent } from "@/server/services/content";
 import { getFeaturedOffers } from "@/server/services/coaching";
 import { getActivePackages } from "@/server/services/package";
 import { getFeaturedTestimonials } from "@/server/services/testimonial";
+import { getGoogleReviews } from "@/server/services/google-reviews";
 import { getGalleryPreview } from "@/server/services/gallery";
 
 export const metadata: Metadata = pageMetadata({
@@ -32,23 +33,24 @@ export const metadata: Metadata = pageMetadata({
 export default async function HomePage() {
   // Parallel: these reads are independent, so waterfalling them would add
   // latency for nothing.
-  const [hero, intro, cta, pillars, bio, place, offers, packages, testimonials, gallery] =
-    await Promise.all([
-      getContent("home.hero"),
-      getContent("home.intro"),
-      getContent("home.cta"),
-      getContent("method.pillars"),
-      getContent("about.bio"),
-      getContent("imsouane.guide"),
-      getFeaturedOffers(),
-      getActivePackages(),
-      getFeaturedTestimonials(),
-      getGalleryPreview(6),
-    ]);
+  // const [hero, intro, cta, pillars, bio, place, offers, packages, testimonials, googleReviews, gallery] =
+  //   await Promise.all([
+  //     getContent("home.hero"),
+  //     getContent("home.intro"),
+  //     getContent("home.cta"),
+  //     getContent("method.pillars"),
+  //     getContent("about.bio"),
+  //     getContent("imsouane.guide"),
+  //     getFeaturedOffers(),
+  //     getActivePackages(),
+  //     getFeaturedTestimonials(),
+  //   getGoogleReviews(),
+  //     getGalleryPreview(6),
+  //   ]);
 
   return (
     <>
-      <Hero content={hero} />
+      {/* <Hero content={hero} />
       <Intro content={intro} />
       <LevelsBand />
       <MethodPillars content={pillars} limit={6} />
@@ -56,7 +58,7 @@ export default async function HomePage() {
       <PackagesSection packages={packages} />
       <PlaceSection content={place} limit={4} />
       <CoachIntro content={bio} truncate />
-      <TestimonialsSection testimonials={testimonials} />
+      <TestimonialsSection testimonials={testimonials} google={googleReviews} />
 
       {gallery.length > 0 && (
         <section className="section-y">
@@ -108,7 +110,7 @@ export default async function HomePage() {
             slug: offer.slug,
           })),
         )}
-      />
+      /> */}
     </>
   );
 }
