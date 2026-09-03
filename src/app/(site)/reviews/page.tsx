@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/sections/PageHeader";
 import { TestimonialsGrid } from "@/components/sections/TestimonialsSection";
 import { CtaBand } from "@/components/sections/CtaBand";
@@ -20,6 +21,14 @@ export default async function ReviewsPage() {
     getPublishedTestimonials(),
     getContent("home.cta"),
   ]);
+
+  // A page whose entire purpose is to list reviews has nothing to say when
+  // there are none. 404 rather than publish a header over a blank column — the
+  // footer link and the sitemap entry go with it, so nothing on the site or in
+  // Google's index points here while it is empty.
+  if (testimonials.length === 0) {
+    notFound();
+  }
 
   return (
     <>

@@ -1,11 +1,17 @@
 import { ArrowRight } from "lucide-react";
 import { ButtonLink } from "@/components/ui/Button";
-import { Container, EmptyState, EyebrowInverse } from "@/components/ui/primitives";
+import { Container, EyebrowInverse } from "@/components/ui/primitives";
 import { Reveal } from "@/components/ui/Reveal";
 import { TestimonialCard } from "@/components/testimonials/TestimonialCard";
 import type { TestimonialDTO } from "@/server/services/types";
 
 export function TestimonialsSection({ testimonials }: { testimonials: TestimonialDTO[] }) {
+  // Nothing published → show nothing. A designed empty state is the right call
+  // for an admin list the coach is about to fill; on the public homepage it
+  // just draws a box around the fact that there are no reviews yet. The
+  // section returns by itself as soon as one is published.
+  if (testimonials.length === 0) return null;
+
   return (
     <section className="section-y bg-[var(--surface-inverse)] text-[var(--text-on-inverse)] relative overflow-hidden">
       <Container size="wide">
@@ -15,33 +21,20 @@ export function TestimonialsSection({ testimonials }: { testimonials: Testimonia
             <h2 className="type-display-l">What surfers say afterwards.</h2>
           </div>
 
-          {testimonials.length > 0 && (
-            <ButtonLink href="/reviews" variant="inverse" className="w-fit shrink-0">
-              Read all reviews
-              <ArrowRight aria-hidden="true" className="size-4" />
-            </ButtonLink>
-          )}
+          <ButtonLink href="/reviews" variant="inverse" className="w-fit shrink-0">
+            Read all reviews
+            <ArrowRight aria-hidden="true" className="size-4" />
+          </ButtonLink>
         </Reveal>
 
         <div className="mt-12">
-          {testimonials.length === 0 ? (
-            // The section must still look designed with zero reviews — and we
-            // never invent one to fill the space.
-            <div className="rounded-[8px] border border-dashed border-[rgba(255,255,255,0.30)] px-6 py-14 text-center">
-              <p className="mx-auto measure-tight type-body-lg text-[var(--text-on-inverse-dim)]">
-                Reviews from recent sessions will appear here. If we have surfed together, we would
-                genuinely like to hear how it went.
-              </p>
-            </div>
-          ) : (
-            <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3 lg:gap-12">
-              {testimonials.map((testimonial, index) => (
-                <Reveal key={testimonial.id} delay={Math.min(index, 5) * 60}>
-                  <TestimonialCard testimonial={testimonial} inverse />
-                </Reveal>
-              ))}
-            </div>
-          )}
+          <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3 lg:gap-12">
+            {testimonials.map((testimonial, index) => (
+              <Reveal key={testimonial.id} delay={Math.min(index, 5) * 60}>
+                <TestimonialCard testimonial={testimonial} inverse />
+              </Reveal>
+            ))}
+          </div>
         </div>
       </Container>
     </section>
@@ -50,16 +43,8 @@ export function TestimonialsSection({ testimonials }: { testimonials: Testimonia
 
 /** Light-surface variant used on the dedicated /reviews page. */
 export function TestimonialsGrid({ testimonials }: { testimonials: TestimonialDTO[] }) {
-  if (testimonials.length === 0) {
-    return (
-      <EmptyState
-        title="No reviews published yet"
-        description="Reviews from recent sessions will appear here once they are published."
-        action={<ButtonLink href="/contact">Book a session</ButtonLink>}
-      />
-    );
-  }
-
+  // No empty state here: /reviews returns a 404 when there is nothing to list,
+  // so this only ever renders with at least one testimonial in hand.
   return (
     <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3 lg:gap-12">
       {testimonials.map((testimonial, index) => (

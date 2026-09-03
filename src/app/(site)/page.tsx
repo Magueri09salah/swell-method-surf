@@ -12,6 +12,7 @@ import { PlaceSection } from "@/components/sections/PlaceSection";
 import { CoachIntro } from "@/components/sections/CoachIntro";
 import { TestimonialsSection } from "@/components/sections/TestimonialsSection";
 import { CtaBand } from "@/components/sections/CtaBand";
+import { WhatsAppFloatButton } from "@/components/layout/WhatsAppFloatButton";
 import { Container, Eyebrow } from "@/components/ui/primitives";
 import { Reveal } from "@/components/ui/Reveal";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -21,6 +22,7 @@ import { getFeaturedOffers } from "@/server/services/coaching";
 import { getActivePackages } from "@/server/services/package";
 import { getFeaturedTestimonials } from "@/server/services/testimonial";
 import { getGalleryPreview } from "@/server/services/gallery";
+import { getSettings } from "@/server/services/settings";
 
 export const metadata: Metadata = pageMetadata({
   title: "Surf Coaching in Imsouane, Morocco",
@@ -32,7 +34,7 @@ export const metadata: Metadata = pageMetadata({
 export default async function HomePage() {
   // Parallel: these reads are independent, so waterfalling them would add
   // latency for nothing.
-  const [hero, intro, cta, pillars, bio, place, offers, packages, testimonials, gallery] =
+  const [hero, intro, cta, pillars, bio, place, offers, packages, testimonials, gallery, settings] =
     await Promise.all([
       getContent("home.hero"),
       getContent("home.intro"),
@@ -44,10 +46,12 @@ export default async function HomePage() {
       getActivePackages(),
       getFeaturedTestimonials(),
       getGalleryPreview(6),
+      getSettings(),
     ]);
 
   return (
     <>
+      <WhatsAppFloatButton number={settings.whatsapp} />
       <Hero content={hero} />
       <Intro content={intro} />
       <LevelsBand />

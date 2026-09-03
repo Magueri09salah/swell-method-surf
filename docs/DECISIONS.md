@@ -456,3 +456,56 @@ otherwise silently turn a package booking into a session booking. `bookingType` 
 
 The WhatsApp summary and the admin list and detail all name the package where they would
 otherwise show the coaching format.
+
+---
+
+### D-021 — The Google reviews integration was removed, and the reviews surfaces hide themselves
+
+**The integration was built, worked correctly, and could never return anything.** Every
+billing account created on the Google Cloud project was auto-closed by Google, so the Places
+API answered `403 PERMISSION_DENIED` on every request. This was confirmed to be an account
+problem rather than a code problem: the same key fails against Google's *own* documentation
+example Place ID, which rules out our Place ID, our field mask, our key restrictions and our
+fetch. Five billing accounts, all closed, all at $0 spend.
+
+Rather than keep a complete, correct, permanently dead code path in the tree waiting on a
+third party, it was deleted:
+
+- `src/server/services/google-reviews.ts` — the Places API client
+- `src/components/testimonials/GoogleReviewCard.tsx` — the review card
+- the `google` prop and the Google branch of `TestimonialsSection` / `TestimonialsGrid`
+- `lh3.googleusercontent.com` from `next.config.ts` (reviewer avatars, now unreachable)
+- `GOOGLE_PLACE_ID` / `GOOGLE_PLACES_API_KEY` from `.env` and `.env.example`
+
+Restoring it is a `git revert` away if the billing account is ever reopened; the work is in
+the history, not in the working tree. This codebase does not keep dead code (see CLAUDE.md).
+
+**Separately, the reviews surfaces now hide themselves when empty.** With no Google source
+and no published testimonials — the Testimonials admin having been removed in D-019 — four
+public surfaces were advertising an absence. All four are driven by one predicate,
+`hasPublicReviews()` in `src/server/services/reviews.ts`:
+
+| Surface | With nothing published | With one or more |
+| --- | --- | --- |
+| Homepage section | not rendered | full section |
+| `/reviews` | 404 | full page |
+| Footer link | dropped | shown |
+| Sitemap entry | omitted | included |
+
+**Why a predicate rather than a feature flag.** The condition that hides these surfaces is
+exactly the condition that should un-hide them. Reading the same cached source the section
+itself reads means the site repairs itself the moment a testimonial is published — no deploy,
+no flag anyone has to remember to flip.
+
+**Why 404 and not an empty page.** Serving a header over a blank column is a soft 404:
+search engines index a thin page and visitors follow a link to nothing. Dropping the footer
+link and the sitemap entry alongside it means no surface on the site, and no entry in
+Google's index, points at the route while it is dark.
+
+The designed empty states were removed rather than left unreachable, for the same
+no-dead-code reason as above.
+
+**Consequence worth naming.** Publishing a testimonial currently requires database access,
+because D-019 removed the Testimonials admin. Reviews therefore cannot return through the
+dashboard alone. Restoring that admin section is the remaining piece of work if the coach
+wants reviews back on the site without a developer.

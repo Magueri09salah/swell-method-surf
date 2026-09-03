@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Instagram, Mail, MapPin, Phone } from "lucide-react";
 import { NAV_LINKS, FOOTER_LINKS, SITE } from "@/lib/constants";
 import { getSettings } from "@/server/services/settings";
+import { hasPublicReviews } from "@/server/services/reviews";
 import { Logo } from "@/components/brand/Logo";
 import { whatsappHref } from "@/lib/utils";
 
@@ -13,8 +14,15 @@ import { whatsappHref } from "@/lib/utils";
  * 2.95:1 and fails even the 3:1 graphics floor. See DECISIONS.md D-013.
  */
 export async function Footer() {
-  const settings = await getSettings();
+  const [settings, showReviews] = await Promise.all([getSettings(), hasPublicReviews()]);
   const year = new Date().getFullYear();
+
+  // /reviews 404s while there is nothing to list, so the link to it is dropped
+  // rather than left pointing at a dead end. It returns with the page.
+  const exploreLinks = [
+    ...NAV_LINKS,
+    ...FOOTER_LINKS.filter((link) => link.href !== "/reviews" || showReviews),
+  ];
 
   const contactItems = [
     settings.email && {
@@ -63,7 +71,7 @@ export async function Footer() {
           <nav aria-label="Footer" className="flex flex-col gap-3">
             <h2 className="type-label">Explore</h2>
             <ul className="flex flex-col gap-2">
-              {[...NAV_LINKS, ...FOOTER_LINKS].map((link) => (
+              {exploreLinks.map((link) => (
                 <li key={link.href}>
                   <Link href={link.href} className={linkClass}>
                     {link.label}
